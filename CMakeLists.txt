@@ -43,7 +43,7 @@ pico_set_program_name(synth_audio "synth_audio")
 pico_set_program_version(synth_audio "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(synth_audio 0)
+pico_enable_stdio_uart(synth_audio 1)
 pico_enable_stdio_usb(synth_audio 1)
 
 # Add the standard library to the build
@@ -63,6 +63,7 @@ target_link_libraries(synth_audio
         hardware_adc
         hardware_dma
         hardware_pwm
+        hardware_clocks
 )
 
 pico_add_extra_outputs(synth_audio)
