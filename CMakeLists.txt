@@ -64,6 +64,7 @@ target_link_libraries(synth_audio
         hardware_dma
         hardware_pwm
         hardware_clocks
+        hardware_watchdog
 )
 
 pico_add_extra_outputs(synth_audio)

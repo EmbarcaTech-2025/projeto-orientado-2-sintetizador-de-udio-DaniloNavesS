@@ -13,7 +13,7 @@
 #define CANAL_ADC 2
 #define BUZZER_PIN 21
 
-#define DURATION_SEC 7
+#define DURATION_SEC 5
 #define SAMPLE_RATE 8000
 #define NUM_SAMPLES (SAMPLE_RATE * DURATION_SEC)
 #define SAMPLE_INTERVAL_US (1000000 / SAMPLE_RATE)
@@ -99,6 +99,8 @@ int main() {
         processed_buffer[i] = (int16_t)( (ALPHA * (raw_buffer[i] - dc_offset)) + ((1.0f - ALPHA) * processed_buffer[i-1]) );
     }
 
+    // --- NOVA ETAPA: APLICANDO GANHO DIGITAL ---
+    // Limites para o áudio de 12 bits centralizado em 0 (aprox. -2048 a +2047)
     const int16_t CLIP_LIMIT = 2047; 
 
     for (uint32_t i = 0; i < NUM_SAMPLES; i++) {
