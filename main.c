@@ -9,14 +9,19 @@
 #include "hardware/timer.h"
 #include "hardware/watchdog.h"
 
+// Pinagem
 #define MIC_PIN 28
 #define CANAL_ADC 2
 #define BUZZER_PIN 21
+#define BUTTON_A 5
 
 #define DURATION_SEC 7
 #define SAMPLE_RATE 8000
 #define NUM_SAMPLES (SAMPLE_RATE * DURATION_SEC)
 #define SAMPLE_INTERVAL_US (1000000 / SAMPLE_RATE)
+
+// Variaveis de estados
+bool status_reproducao = false;
 
 // ==========================================================
 // FATOR DE GANHO DIGITAL - AJUSTE O VOLUME AQUI!
@@ -27,7 +32,6 @@
 // Comece com 1.5 e aumente com cuidado para evitar distorção.
 const float GAIN_FACTOR = 3.0f; 
 // ==========================================================
-
 
 volatile uint16_t raw_buffer[NUM_SAMPLES];
 volatile int16_t processed_buffer[NUM_SAMPLES];
@@ -52,7 +56,7 @@ bool amostragem_callback(repeating_timer_t *t) {
 }
 
 void play_audio_synced(uint pin, int16_t dc_offset) {
-    printf("Tocando audio com ganho de %.1fx...\n", GAIN_FACTOR);
+    status_reproducao = true;
     for (uint32_t i = 0; i < NUM_SAMPLES; i++) {
         int32_t pwm_value = processed_buffer[i] + dc_offset;
         uint16_t pwm_value_10bit = pwm_value >> 2;
@@ -62,6 +66,7 @@ void play_audio_synced(uint pin, int16_t dc_offset) {
         watchdog_update();
     }
     pwm_set_gpio_level(pin, 0);
+    status_reproducao = false;
     printf("Reprodução finalizada.\n");
 }
 
@@ -69,13 +74,17 @@ int main() {
     set_sys_clock_khz(125000, true);
     stdio_init_all();
     sleep_ms(2000); 
-    watchdog_enable(6000, 1);
 
+    watchdog_enable(6000, 1);
+    // Inicializacao Microfone
     adc_init();
     adc_gpio_init(MIC_PIN);
     adc_select_input(CANAL_ADC);
-
     pwm_init_buzzer_synced(BUZZER_PIN);
+    // Inicializao de botao
+    gpio_init(BUTTON_A);
+    gpio_set_dir(BUTTON_A, GPIO_IN);
+    gpio_pull_up(BUTTON_A);
 
     printf("Gravando...\n");
     add_repeating_timer_us(-SAMPLE_INTERVAL_US, amostragem_callback, NULL, &timer);
@@ -114,7 +123,10 @@ int main() {
     printf("Filtros e ganho aplicados.\n");
     
     while (true) {
-        play_audio_synced(BUZZER_PIN, dc_offset);
+        if(gpio_get(BUTTON_A) == 0 && !status_reproducao) {
+           play_audio_synced(BUZZER_PIN, dc_offset);
+        }
+        
         sleep_ms(3000);
     }
 
