@@ -36,7 +36,10 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 
 add_executable( synth_audio
-  main.c
+    main.c
+    include/audio_modulo.c
+    include/d_oled/ssd1306.c
+    include/display_modulo.c
 )
 
 pico_set_program_name(synth_audio "synth_audio")
@@ -65,6 +68,7 @@ target_link_libraries(synth_audio
         hardware_pwm
         hardware_clocks
         hardware_watchdog
+        hardware_i2c
 )
 
 pico_add_extra_outputs(synth_audio)
